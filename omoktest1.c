@@ -22,6 +22,7 @@ int check_diagonal_win2(int player_stone, int row, int col);
 int check_win(int player_stone, int row, int col);
 
 int main(){
+regame:
 	int ch;					// 사용자 키 입력을 저장할 변수
 	int game_run;			// game running을 확인하는 변수
 	initscr();
@@ -78,9 +79,10 @@ int main(){
 	}
 
 	if(game_run==0){
-		mvprintw(LINES-3, 0, "player %d win, quit after 5 seconds..", current_player);
+		mvprintw(LINES-3, 0, "player %d win, press r to replay", current_player);
 		refresh();
-		sleep(5);
+		ch = getch();
+		if(ch=='r') goto regame;
 	}
 
 	endwin();
