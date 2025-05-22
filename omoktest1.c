@@ -218,6 +218,7 @@ int check_diagonal_win2(int player_stone, int row, int col){
 	return 0;
 }
 
+// 승리조건 모두 검사
 int check_win(int player_stone, int row, int col){
 	if(check_horizontal_win(player_stone, row, col)) return 1;
 	if(check_vertical_win(player_stone, row, col)) return 1;
