@@ -4,6 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
+#include <locale.h>
 
 #define BOARD_SIZE 15
 #define EMPTY 0
@@ -23,6 +24,7 @@ int check_win(int player_stone, int row, int col);
 
 int main(){
 regame:
+	setlocale(LC_ALL, "");
 	int ch;					// 사용자 키 입력을 저장할 변수
 	int game_run;			// game running을 확인하는 변수
 	initscr();
@@ -94,12 +96,12 @@ void draw_board(){
 	clear();
 	for(int i=0; i<BOARD_SIZE; i++){
 		for(int j=0; j<BOARD_SIZE*2; j+=2){
-			//mvaddch(i, j, '-');	// 가로선 그리기
+			mvaddch(i, j, ACS_HLINE);	// 가로선 그리기
 		}
 		if(i<BOARD_SIZE){
 			for(int j=0; j<BOARD_SIZE; j++){
 				//mvaddch(i, j*2, '|');	// 세로선
-				mvaddch(i, j*2+1, '+');	// 교차점
+				mvaddch(i, j*2+1, ACS_PLUS);	// 교차점
 				if(board[i][j] == BLACK){
 					mvaddch(i, j*2+1, '@');	// 흑돌
 				}
