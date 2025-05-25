@@ -4,6 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
+#include <locale.h>
 
 #define BOARD_SIZE 15
 #define EMPTY 0
@@ -28,6 +29,7 @@ int check_33(int player_stone, int row, int col);
 
 int main(){
 regame:
+	setlocale(LC_ALL, "");	// 유니코드 지원
 	int ch;					// 사용자 키 입력을 저장할 변수
 	int game_run;			// game running을 확인하는 변수
 	initscr();
@@ -113,24 +115,49 @@ regame:
 
 void draw_board(){
 	clear();
-	for(int i=0; i<BOARD_SIZE; i++){
-		for(int j=0; j<BOARD_SIZE*2; j+=2){
-			//mvaddch(i, j, '-');	// 가로선 그리기
-		}
-		if(i<BOARD_SIZE){
-			for(int j=0; j<BOARD_SIZE; j++){
-				//mvaddch(i, j*2, '|');	// 세로선
-				mvaddch(i, j*2+1, '+');	// 교차점
-				if(board[i][j] == BLACK){
-					mvaddch(i, j*2+1, '@');	// 흑돌
-				}
-				else if(board[i][j] == WHITE){
-					mvaddch(i, j*2+1, 'O');	// 백돌
-				}
-			}
-			//mvaddch(i, BOARD_SIZE*2, '|');	// 마지막 세로선
-		}
-	}
+	// 테두리 및 내부 교차점 그리기
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (i == 0 && j == 0) { // 왼쪽 상단 모서리
+                mvaddch(i, j * 2, ACS_ULCORNER);
+            } else if (i == 0 && j == BOARD_SIZE - 1) { // 오른쪽 상단 모서리
+                mvaddch(i, j * 2, ACS_URCORNER);
+            } else if (i == BOARD_SIZE - 1 && j == 0) { // 왼쪽 하단 모서리
+                mvaddch(i, j * 2, ACS_LLCORNER);
+            } else if (i == BOARD_SIZE - 1 && j == BOARD_SIZE - 1) { // 오른쪽 하단 모서리
+                mvaddch(i, j * 2, ACS_LRCORNER);
+            } else if (i == 0) { // 상단 가로선
+                mvaddch(i, j * 2, ACS_TTEE);
+            } else if (i == BOARD_SIZE - 1) { // 하단 가로선
+                mvaddch(i, j * 2, ACS_BTEE);
+            } else if (j == 0) { // 왼쪽 테두리
+                mvaddch(i, j * 2, ACS_LTEE);
+            } else if (j == BOARD_SIZE - 1) { // 오른쪽 테두리
+                mvaddch(i, j * 2, ACS_RTEE);
+            } else { // 내부 교차점
+                mvaddch(i, j * 2, ACS_PLUS);
+            }
+
+            // 가로선 연결
+            if (j < BOARD_SIZE - 1) {
+                mvaddch(i, j * 2 + 1, ACS_HLINE);
+            }
+            // 세로선 연결
+            if (i < BOARD_SIZE - 1) {
+                mvaddch(i + 1, j * 2, ACS_VLINE);
+            }
+        }
+    }
+
+    // 돌 표시
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] == BLACK)
+                mvaddch(i, j * 2, '@'); // 흑돌
+            else if (board[i][j] == WHITE)
+                mvaddch(i, j * 2, 'O'); // 백돌
+        }
+    };
 
 	mvprintw(LINES-2, 0, "current player: %s (move : movekey, put : SPACE, quit: q)", current_player==BLACK ? "@" : "O");
    	move(current_row, current_col*2+1);
