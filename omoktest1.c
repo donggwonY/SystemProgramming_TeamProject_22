@@ -4,7 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
-// test annotation
+
 #define BOARD_SIZE 15
 #define EMPTY 0
 #define BLACK 1
@@ -20,6 +20,10 @@ int check_vertical_win(int player_stone, int row, int col);
 int check_diagonal_win1(int player_stone, int row, int col);
 int check_diagonal_win2(int player_stone, int row, int col);
 int check_win(int player_stone, int row, int col);
+int check_hor_open3(int row, int col);
+int check_ver_open3(int row, int col);
+int check_33(int row, int col);
+
 
 int main(){
 regame:
@@ -64,12 +68,21 @@ regame:
 				break;
 			case ' ':	// space로 착수
 				if(board[current_row][current_col] == EMPTY){			// 해당 칸이 비어있다면
-					board[current_row][current_col] = current_player;	// 착수
-					draw_board();
-					refresh();
-					if(check_win(current_player, current_row, current_col)){
-						game_run = 0;
-						break;
+					if(check_33(current_row, current_col)){
+						mvprintw(LINES-3, 0, "3-3 Forbidden move! press any key to continue");
+					   	refresh();
+						mvprintw(LINES-3, 0, "                                             ");
+						refresh();
+						continue;
+					}
+					else{
+						board[current_row][current_col] = current_player;	// 착수
+						draw_board();
+						refresh();
+						if(check_win(current_player, current_row, current_col)){
+							game_run = 0;
+							break;
+						}
 					}
 	
 					current_player = (current_player == BLACK) ? WHITE : BLACK;	// 다음 플레이어로 턴 전환
@@ -228,6 +241,74 @@ int check_win(int player_stone, int row, int col){
 	if(check_diagonal_win2(player_stone, row, col)) return 1;
 	return 0;
 }
+
+int check_hor_open3(int row, int col){
+	if(0<=col-1 && board[row][col-1]==EMPTY)	// []
+		if(col+1<BOARD_SIZE && board[row][col+1]==BLACK)	//[]XO
+			if(col+2<BOARD_SIZE && board[row][col+2]==BLACK)	// []XOO
+				if(col+3<BOARD_SIZE && board[row][col+3]==EMPTY)	// case1: []XOO[]
+					return 1;
+	else if(0<=col-1 && board[row][col-1]==BLACK)	// OX
+		if(0<=col-2 && board[row][col-2]==EMPTY)	// []OX
+			if(col+1<BOARD_SIZE && board[row][col+1]==BLACK)	// []OXO	
+				if(col+2<BOARD_SIZE && board[row][col+2]==EMPTY)	// case2: []OXO[]
+					return 2;
+		else if(0<=col-2 && board[row][col-2]==BLACK)	// OOX
+			if(0<=col-3 && board[row][col-3]==EMPTY)	// []OOX
+				if(col+1<BOARD_SIZE && board[row][col+1]==EMPTY)	// case3: []OOX[]
+					return 3;
+	else// (0<=col-1 && board[row][col-1]==WHITE), open3이 아닌 경우
+		return 0;
+}
+
+int check_ver_open3(int row, int col){
+	if(0<=row-1 && board[row-1][col]==BLACK)	// XO +90도 회전
+		if(0<=row-2 && board[row-2][col]==BLACK)	// XOO +90도 회전
+			if(0<=row-3 && board[row-3][col]==EMPTY)	// XOO[] +90도 회전
+				if(row+1<BOARD_SIZE && board[row+1][col]==EMPTY)	// case1: []XOO[] +90도 회전
+					return 1;
+		else if(0<=row-2 && board[row-2][col]==EMPTY)	// XO[]
+			if(row+1<BOARD_SIZE && board[row+1][col]==BLACK)	// OXO[]
+				if(row+2<BOARD_SIZE && board[row+2][col]==EMPTY)	// case2: []OXO[] +90도 회전
+					return 2;
+	else if(0<=row-1 && board[row-1][col]==EMPTY)
+		if(row+1<BOARD_SIZE && board[row+1][col]==BLACK)
+			if(row+2<BOARD_SIZE && board[row+2][col]==BLACK)
+				if(row+3<BOARD_SIZE && board[row+3][col]==EMPTY)
+					return 3;
+	else// open3 아닌 경우
+		return 0;
+}
+
+int check_33(int row, int col){
+	board[row][col] = BLACK;
+	if(check_hor_open3(row, col)==1){
+		for(int i=0; i<3; i++){
+			if(check_ver_open3(row, col+i))
+				board[row][col] = EMPTY;
+				return 1;
+		}
+	}
+	
+	else if(check_hor_open3(row, col)==2){
+		for(int i=-1; i<2; i++){
+			if(check_ver_open3(row, col+i))
+				board[row][col] = EMPTY;
+				return 1;
+		}
+	}
+
+	else if(check_hor_open3(row, col)==3){
+		for(int i=-2; i<1; i++){
+			if(check_ver_open3(row, col+i))
+				board[row][col] = EMPTY;
+				return 1;
+		}
+	}
+	board[row][col] = EMPTY;
+	return 0;
+}
+
 
 		
 
