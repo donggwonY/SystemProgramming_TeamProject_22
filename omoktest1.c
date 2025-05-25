@@ -4,7 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
-
+// test annotation
 #define BOARD_SIZE 15
 #define EMPTY 0
 #define BLACK 1
