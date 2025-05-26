@@ -118,46 +118,46 @@ regame:
 void draw_board(){
 	clear();
 	// 테두리 및 내부 교차점 그리기
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            if (i == 0 && j == 0) { // 왼쪽 상단 모서리
-                mvaddch(i, j * 2, ACS_ULCORNER);
-            } else if (i == 0 && j == BOARD_SIZE - 1) { // 오른쪽 상단 모서리
+    for (int i=0; i<BOARD_SIZE; i++) {
+        for (int j=0; j<BOARD_SIZE; j++) {
+            if (i==0 && j==0) { // 왼쪽 상단 모서리
+                mvaddch(i, j*2, ACS_ULCORNER);
+            } else if (i==0 && j==BOARD_SIZE-1) { // 오른쪽 상단 모서리
                 mvaddch(i, j * 2, ACS_URCORNER);
-            } else if (i == BOARD_SIZE - 1 && j == 0) { // 왼쪽 하단 모서리
-                mvaddch(i, j * 2, ACS_LLCORNER);
-            } else if (i == BOARD_SIZE - 1 && j == BOARD_SIZE - 1) { // 오른쪽 하단 모서리
-                mvaddch(i, j * 2, ACS_LRCORNER);
-            } else if (i == 0) { // 상단 가로선
-                mvaddch(i, j * 2, ACS_TTEE);
-            } else if (i == BOARD_SIZE - 1) { // 하단 가로선
-                mvaddch(i, j * 2, ACS_BTEE);
-            } else if (j == 0) { // 왼쪽 테두리
-                mvaddch(i, j * 2, ACS_LTEE);
-            } else if (j == BOARD_SIZE - 1) { // 오른쪽 테두리
-                mvaddch(i, j * 2, ACS_RTEE);
+            } else if (i==BOARD_SIZE-1 && j==0) { // 왼쪽 하단 모서리
+                mvaddch(i, j*2, ACS_LLCORNER);
+            } else if (i==BOARD_SIZE-1 && j==BOARD_SIZE-1) { // 오른쪽 하단 모서리
+                mvaddch(i, j*2, ACS_LRCORNER);
+            } else if (i==0) { // 상단 가로선
+                mvaddch(i, j*2, ACS_TTEE);
+            } else if (i==BOARD_SIZE-1) { // 하단 가로선
+                mvaddch(i, j*2, ACS_BTEE);
+            } else if (j==0) { // 왼쪽 테두리
+                mvaddch(i, j*2, ACS_LTEE);
+            } else if (j==BOARD_SIZE-1) { // 오른쪽 테두리
+                mvaddch(i, j*2, ACS_RTEE);
             } else { // 내부 교차점
-                mvaddch(i, j * 2, ACS_PLUS);
+                mvaddch(i, j*2, ACS_PLUS);
             }
 
             // 가로선 연결
-            if (j < BOARD_SIZE - 1) {
-                mvaddch(i, j * 2 + 1, ACS_HLINE);
+            if (j<BOARD_SIZE-1) {
+                mvaddch(i, j*2+1, ACS_HLINE);
             }
             // 세로선 연결
-            if (i < BOARD_SIZE - 1) {
-                mvaddch(i + 1, j * 2, ACS_VLINE);
+            if (i<BOARD_SIZE-1) {
+                mvaddch(i+1, j*2, ACS_VLINE);
             }
         }
     }
 
     // 돌 표시
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            if (board[i][j] == BLACK)
-                mvaddch(i, j * 2, '@'); // 흑돌
+    for (int i=0; i<BOARD_SIZE; i++) {
+        for (int j=0; j<BOARD_SIZE; j++) {
+            if (board[i][j]==BLACK)
+                mvaddch(i, j*2, '@'); // 흑돌
             else if (board[i][j] == WHITE)
-                mvaddch(i, j * 2, 'O'); // 백돌
+                mvaddch(i, j*2, 'O'); // 백돌
         }
     };
 
