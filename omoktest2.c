@@ -295,22 +295,22 @@ int create_open3(int player_stone, int row, int col, int dr, int dc){
 		get_stone_at(row+dr, col+dc) == player_stone &&
 		get_stone_at(row+2*dr, col+2*dc) == player_stone &&
 		get_stone_at(row+3*dr, col+2*dc) == EMPTY){
-		// case []XOO[]
+		// case1: []XOO[]
 		return 1;
 	}
 	if( get_stone_at(row-2*dr, col-2*dc) == EMPTY &&
 		get_stone_at(row-dr, col-dc) == player_stone &&
 		get_stone_at(row+dr, col+dc) == player_stone &&
 		get_stone_at(row+2*dr, col+2*dc) == EMPTY){
-		// case []OXO[]
-		return 1;
+		// case2: []OXO[]
+		return 2;
 	}
 	if( get_stone_at(row-3*dr, col-3*dc) == EMPTY &&
 		get_stone_at(row-2*dr, col-2*dc) == player_stone &&
 		get_stone_at(row-dr, col-dc) == player_stone &&
 		get_stone_at(row+dr, col+dc) == EMPTY){
-		//case []OOX[]
-		return 1;
+		//case3: []OOX[]
+		return 3;
 	}
 
 	return 0;
@@ -324,6 +324,8 @@ int check_33(int player_stone, int row, int col){
 	int dr[] = {0, 1, 1, 1};	// delta row
 	int dc[] = {1, 0, 1, -1};	// delta col
 	
+	// i=0 : 가로로 검사, i=1: 세로로 검사
+	// i=2 : (\)방향으로 검사, i=3: (/)방향으로 검사
 	for(int i=0; i<4; i++){
 		if(create_open3(player_stone, row, col, dr[i], dc[i])){
 			open_33_cnt++;
