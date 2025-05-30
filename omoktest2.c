@@ -10,6 +10,8 @@
 #define EMPTY 0
 #define BLACK 1
 #define WHITE 2
+//#define BLACK_STONE "●"
+//#define WHITE_STONE "○"
 
 int board[BOARD_SIZE][BOARD_SIZE];
 int current_row, current_col;
@@ -21,10 +23,15 @@ int check_vertical_win(int player_stone, int row, int col);
 int check_diagonal_win1(int player_stone, int row, int col);
 int check_diagonal_win2(int player_stone, int row, int col);
 int check_win(int player_stone, int row, int col);
+int is_on_board(int row, int col);
+int get_stone_at(int row, int col);
+int create_open3(int player_stone, int row, int col, int dr, int dc);
+int check_33(int player_stone, int row, int col);
+
 
 int main(){
 regame:
-	setlocale(LC_ALL, "");
+	setlocale(LC_ALL, "");	// 유니코드 지원
 	int ch;					// 사용자 키 입력을 저장할 변수
 	int game_run;			// game running을 확인하는 변수
 	initscr();
@@ -66,24 +73,40 @@ regame:
 				break;
 			case ' ':	// space로 착수
 				if(board[current_row][current_col] == EMPTY){			// 해당 칸이 비어있다면
-					board[current_row][current_col] = current_player;	// 착수
-					draw_board();
-					refresh();
-					if(check_win(current_player, current_row, current_col)){
-						game_run = 0;
-						break;
+					if(current_player == BLACK && check_33(BLACK, current_row, current_col)){
+						mvprintw(LINES-3, 0, "3-3 Forbidden move! press any key to continue");
+					   	clrtoeol();
+						refresh();
+						getch();
+						move(LINES-3, 0);
+						clrtoeol();
+						continue;
 					}
-	
-					current_player = (current_player == BLACK) ? WHITE : BLACK;	// 다음 플레이어로 턴 전환
+					else{
+						board[current_row][current_col] = current_player;	// 착수
+						draw_board();
+						refresh();
+						if(check_win(current_player, current_row, current_col)){
+							game_run = 0;
+							break;
+						}
+						else{
+							current_player = (current_player == BLACK) ? WHITE : BLACK;
+						}
+						draw_board();
+						refresh();
+					}
 				}
 				break;
+			}
 		}
-	}
 
-	if(game_run==0){
+	if(game_run==0 && !(ch=='q')){
+		draw_board();
 		mvprintw(LINES-3, 0, "player %d win, press r to replay", current_player);
+		clrtoeol();
 		refresh();
-		ch = getch();
+		while((ch = getch()) != 'r' && ch != 'q');
 		if(ch=='r') goto regame;
 	}
 
@@ -94,24 +117,49 @@ regame:
 
 void draw_board(){
 	clear();
-	for(int i=0; i<BOARD_SIZE; i++){
-		for(int j=0; j<BOARD_SIZE*2; j+=2){
-			mvaddch(i, j, ACS_HLINE);	// 가로선 그리기
-		}
-		if(i<BOARD_SIZE){
-			for(int j=0; j<BOARD_SIZE; j++){
-				//mvaddch(i, j*2, '|');	// 세로선
-				mvaddch(i, j*2+1, ACS_PLUS);	// 교차점
-				if(board[i][j] == BLACK){
-					mvaddch(i, j*2+1, '@');	// 흑돌
-				}
-				else if(board[i][j] == WHITE){
-					mvaddch(i, j*2+1, 'O');	// 백돌
-				}
-			}
-			//mvaddch(i, BOARD_SIZE*2, '|');	// 마지막 세로선
-		}
-	}
+	// 테두리 및 내부 교차점 그리기
+    for (int i=0; i<BOARD_SIZE; i++) {
+        for (int j=0; j<BOARD_SIZE; j++) {
+            if (i==0 && j==0) { // 왼쪽 상단 모서리
+                mvaddch(i, j*2, ACS_ULCORNER);
+            } else if (i==0 && j==BOARD_SIZE-1) { // 오른쪽 상단 모서리
+                mvaddch(i, j * 2, ACS_URCORNER);
+            } else if (i==BOARD_SIZE-1 && j==0) { // 왼쪽 하단 모서리
+                mvaddch(i, j*2, ACS_LLCORNER);
+            } else if (i==BOARD_SIZE-1 && j==BOARD_SIZE-1) { // 오른쪽 하단 모서리
+                mvaddch(i, j*2, ACS_LRCORNER);
+            } else if (i==0) { // 상단 가로선
+                mvaddch(i, j*2, ACS_TTEE);
+            } else if (i==BOARD_SIZE-1) { // 하단 가로선
+                mvaddch(i, j*2, ACS_BTEE);
+            } else if (j==0) { // 왼쪽 테두리
+                mvaddch(i, j*2, ACS_LTEE);
+            } else if (j==BOARD_SIZE-1) { // 오른쪽 테두리
+                mvaddch(i, j*2, ACS_RTEE);
+            } else { // 내부 교차점
+                mvaddch(i, j*2, ACS_PLUS);
+            }
+
+            // 가로선 연결
+            if (j<BOARD_SIZE-1) {
+                mvaddch(i, j*2+1, ACS_HLINE);
+            }
+            // 세로선 연결
+            if (i<BOARD_SIZE-1) {
+                mvaddch(i+1, j*2, ACS_VLINE);
+            }
+        }
+    }
+
+    // 돌 표시
+    for (int i=0; i<BOARD_SIZE; i++) {
+        for (int j=0; j<BOARD_SIZE; j++) {
+            if (board[i][j]==BLACK)
+                mvaddch(i, j*2, '@'); // 흑돌
+            else if (board[i][j] == WHITE)
+                mvaddch(i, j*2, 'O'); // 백돌
+        }
+    };
 
 	mvprintw(LINES-2, 0, "current player: %s (move : movekey, put : SPACE, quit: q)", current_player==BLACK ? "@" : "O");
    	move(current_row, current_col*2+1);
@@ -231,6 +279,60 @@ int check_win(int player_stone, int row, int col){
 	return 0;
 }
 
-		
+int is_on_board(int row, int col){
+	return 0<=row && row<BOARD_SIZE && 0<=col && col<BOARD_SIZE;
+}
 
+int get_stone_at(int row, int col){
+	if(!is_on_board(row, col)){
+		return -1;
+	}
+	return board[row][col];
+}
 
+int create_open3(int player_stone, int row, int col, int dr, int dc){
+	if( get_stone_at(row-dr, col-dc) == EMPTY &&
+		get_stone_at(row+dr, col+dc) == player_stone &&
+		get_stone_at(row+2*dr, col+2*dc) == player_stone &&
+		get_stone_at(row+3*dr, col+2*dc) == EMPTY){
+		// case1: []XOO[]
+		return 1;
+	}
+	if( get_stone_at(row-2*dr, col-2*dc) == EMPTY &&
+		get_stone_at(row-dr, col-dc) == player_stone &&
+		get_stone_at(row+dr, col+dc) == player_stone &&
+		get_stone_at(row+2*dr, col+2*dc) == EMPTY){
+		// case2: []OXO[]
+		return 2;
+	}
+	if( get_stone_at(row-3*dr, col-3*dc) == EMPTY &&
+		get_stone_at(row-2*dr, col-2*dc) == player_stone &&
+		get_stone_at(row-dr, col-dc) == player_stone &&
+		get_stone_at(row+dr, col+dc) == EMPTY){
+		//case3: []OOX[]
+		return 3;
+	}
+
+	return 0;
+}
+
+int check_33(int player_stone, int row, int col){
+
+	board[row][col] = player_stone;	// 임시 착수, 이후 테스트
+
+	int open_33_cnt = 0;
+	int dr[] = {0, 1, 1, 1};	// delta row
+	int dc[] = {1, 0, 1, -1};	// delta col
+	
+	// i=0 : 가로로 검사, i=1: 세로로 검사
+	// i=2 : (\)방향으로 검사, i=3: (/)방향으로 검사
+	for(int i=0; i<4; i++){
+		if(create_open3(player_stone, row, col, dr[i], dc[i])){
+			open_33_cnt++;
+		}
+	}
+	
+	board[row][col] = EMPTY;		// 테스트 후 원래상태로 초기화
+	
+	return open_33_cnt >= 2;
+}	
