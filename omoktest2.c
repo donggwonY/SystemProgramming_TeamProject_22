@@ -10,8 +10,8 @@
 #define EMPTY 0
 #define BLACK 1
 #define WHITE 2
-//#define BLACK_STONE "●"
-//#define WHITE_STONE "○"
+#define BLACK_STONE "●"
+#define WHITE_STONE "○"
 
 int board[BOARD_SIZE][BOARD_SIZE];
 int current_row, current_col;
