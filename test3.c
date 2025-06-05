@@ -37,6 +37,7 @@ int  create_open3(int player_stone, int row, int col, int dr, int dc);
 int  check_33(int player_stone, int row, int col);
 int is_open_four(int player_stone, int row, int col, int dr, int dc);
 int check_44(int player_stone, int row, int col);
+int check_six(int player_stone, int row, int col);
 
 
 // 화면 상태(enum)
@@ -151,7 +152,19 @@ int main() {
                             break;
                         case ' ':
                             if (board[current_row][current_col] == EMPTY) {
-                                if (current_player == BLACK && check_33(BLACK, current_row, current_col)) {
+
+								if (current_player == BLACK && check_six(BLACK, current_row, current_col)){
+									board[current_row][current_col] = BLACK;
+									draw_board();
+									mvprintw(LINES-3, 0, "6-mok Forbidden move! Black loses! Press 'r' to replay, 'q' to quit.");
+									winner = WHITE;
+									clrtoeol();
+									refresh();
+									game_run_flag = 0;
+									break;
+								}
+
+								else if (current_player == BLACK && check_33(BLACK, current_row, current_col)) {
                                     mvprintw(LINES - 3, 0, "3-3 Forbidden move! press any key to continue");
                                     clrtoeol();
                                     refresh();
@@ -573,6 +586,86 @@ int check_44(int player_stone, int row, int col) {
     board[row][col] = EMPTY;
     return 0;  // 금수 아님
 }
+
+// 6목 이상(장목)이 생성되었는지 검사하는 함수
+// player_stone: 현재 착수한 플레이어의 돌
+// row, col: 방금 놓은 돌의 위치
+int check_six(int player_stone, int row, int col) {
+    // 가로 방향 검사
+    for (int start_col = col - 5; start_col <= col; start_col++) { // 6개 연속이므로 -5 ~ 0까지
+        if (start_col >= 0 && start_col + 5 < BOARD_SIZE) { // 6번째 돌까지 보드 안에 있는지 확인
+            int count = 0;
+            for (int k = 0; k < 6; k++) { // 6개 연속 검사
+                if (board[row][start_col + k] == player_stone) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count == 6) { // 6개 연속된 돌 발견
+                return 1;
+            }
+        }
+    }
+
+    // 세로 방향 검사
+    for (int start_row = row - 5; start_row <= row; start_row++) {
+        if (start_row >= 0 && start_row + 5 < BOARD_SIZE) {
+            int count = 0;
+            for (int k = 0; k < 6; k++) {
+                if (board[start_row + k][col] == player_stone) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count == 6) {
+                return 1;
+            }
+        }
+    }
+
+    // 대각선 방향 (\) 검사
+    for (int i = 0; i < 6; i++) {
+        int start_row = row - i;
+        int start_col = col - i;
+        if (start_row >= 0 && start_col >= 0 && start_row + 5 < BOARD_SIZE && start_col + 5 < BOARD_SIZE) {
+            int count = 0;
+            for (int j = 0; j < 6; j++) {
+                if (board[start_row + j][start_col + j] == player_stone) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count == 6) {
+                return 1;
+            }
+        }
+    }
+
+    // 대각선 방향 (/) 검사
+    for (int i = 0; i < 6; i++) {
+        int start_row = row - i;
+        int start_col = col + i;
+        if (start_row >= 0 && start_col < BOARD_SIZE && start_row + 5 < BOARD_SIZE && start_col - 5 >= 0) {
+            int count = 0;
+            for (int j = 0; j < 6; j++) {
+                if (board[start_row + j][start_col - j] == player_stone) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count == 6) {
+                return 1;
+            }
+        }
+    }
+
+    return 0; // 6목 이상이 발견되지 않음
+}
+
 
 // 전적 파일 읽기
 int load_all_records(PlayerRecord **out_records) {
