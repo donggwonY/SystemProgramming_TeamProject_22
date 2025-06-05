@@ -591,7 +591,8 @@ int check_44(int player_stone, int row, int col) {
 // player_stone: 현재 착수한 플레이어의 돌
 // row, col: 방금 놓은 돌의 위치
 int check_six(int player_stone, int row, int col) {
-    // 가로 방향 검사
+    board[row][col] = BLACK;
+	// 가로 방향 검사
     for (int start_col = col - 5; start_col <= col; start_col++) { // 6개 연속이므로 -5 ~ 0까지
         if (start_col >= 0 && start_col + 5 < BOARD_SIZE) { // 6번째 돌까지 보드 안에 있는지 확인
             int count = 0;
