@@ -592,6 +592,7 @@ void* handle_client_session(void* arg) {
                 if (!is_on_board(r, c) || board[r][c] != EMPTY) {
                     snprintf(msg, sizeof(msg), "둘 수 없는 위치입니다. 다시 두세요.");
                     packet.type = RES_INVALID;
+					strncpy(packet.message, msg, sizeof(packet.message)-1);
                     send(client_sockets[player_idx], &packet, sizeof(GamePacket), 0);
                     continue;
                 } else if (current_player == BLACK && check_six(current_player, r, c)) {
