@@ -177,6 +177,13 @@ int main(int argc, char *argv[]) {
 
     // 메인 스레드: 사용자 입력 처리
     while (client_state != -1) {
+
+        pthread_mutex_lock(&ncurses_mutex);
+        if (client_state != VIEWING_RECORDS) {
+            draw_game_board();
+        }
+        pthread_mutex_unlock(&ncurses_mutex);
+
         int ch = getch();
         if (client_state == -1) break;
 
@@ -194,6 +201,9 @@ int main(int argc, char *argv[]) {
                     req_packet.row = current_row;
                     req_packet.col = current_col;
                     send(sock, &req_packet, sizeof(GamePacket), 0);
+				    pthread_mutex_lock(&ncurses_mutex);
+                    strcpy(status_message, "서버의 응답을 기다립니다...");
+                    pthread_mutex_unlock(&ncurses_mutex);
                     break;
                 case 'q':
                     // 'q'를 누르면 서버에 포기 요청을 보냄
