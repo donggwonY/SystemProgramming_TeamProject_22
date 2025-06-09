@@ -189,6 +189,16 @@ int main(int argc, char *argv[]) {
 
         GamePacket req_packet;
 
+		if(ch=='q'){
+			if (client_state == PLAYING) { // 게임 중이었다면 포기 요청 전송
+                req_packet.type = REQ_QUIT;
+                send(sock, &req_packet, sizeof(GamePacket), 0);
+            }
+            client_state = -1; // 클라이언트 상태를 -1로 변경하여 루프 탈출
+            continue;          // 즉시 루프 조건 검사
+        }
+
+
         if (client_state == PLAYING) {
             switch (ch) {
                 case KEY_UP:    if(current_row > 0) current_row--; break;
