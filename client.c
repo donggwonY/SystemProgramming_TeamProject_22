@@ -74,6 +74,7 @@ void draw_records(GamePacket* packet) {
     refresh();
 }
 
+// 서버로부터 패킷을 수신하는 역할을 하는 스레드 함수
 void* receive_handler(void* arg) {
     int sock = *(int*)arg;
     GamePacket packet;
@@ -82,6 +83,7 @@ void* receive_handler(void* arg) {
         pthread_mutex_lock(&ncurses_mutex);
         //strcpy(status_message, packet.message);
 
+        // 서버로부터 수신받은 패킷 타입에 따라 처리
         switch (packet.type) {
             case RES_START:
             case RES_UPDATE:

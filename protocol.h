@@ -3,7 +3,7 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#define BOARD_SIZE    15
+#define BOARD_SIZE    15 // 오목판의 크기는 15 by 15
 #define MAX_NAME_LEN  32
 #define MAX_RECORDS   50 // 전적 보기에 표시할 최대 플레이어 수
 
@@ -21,7 +21,7 @@ typedef struct {
 
 // 서버-클라이언트 간 통신 패킷
 typedef struct {
-    int type;
+    int type;   // 패킷 타입
     int row;
     int col;
     int player;

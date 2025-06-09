@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include "protocol.h"
 
+// 전적을 저장할 파일
 #define RECORD_FILE "gomoku_records.dat"
 
 // 전역변수
@@ -41,7 +42,6 @@ void broadcast(GamePacket* packet);
 void* handle_client_session(void* arg);
 
 int main(int argc, char *argv[]) {
-    // ... main 함수 앞부분은 동일 ...
     if (argc != 2) {
         fprintf(stderr, "사용법: %s <port>\n", argv[0]);
         exit(1);
@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
 
     printf("오목 서버가 시작되었습니다. 플레이어의 접속을 기다립니다...\n");
 
+    // 2명의 클라이언트 접속 대기, 수락
     for (int i = 0; i < 2; i++) {
         clnt_addr_size = sizeof(clnt_addr);
         clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size);
@@ -83,6 +84,7 @@ int main(int argc, char *argv[]) {
         
         printf("플레이어 '%s' 접속 (%d/2)\n", player_names[i], i + 1);
 
+        // 첫 번째 클라이언트에게는 대기 메세지 전송
         if (i == 0) {
             GamePacket wait_packet;
             wait_packet.type = RES_WAIT;
@@ -91,6 +93,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // 게임 세션 스레드 생성, 실행
     printf("모든 플레이어가 접속했습니다. 게임을 시작합니다.\n");
     pthread_create(&session_thread, NULL, handle_client_session, NULL);
     pthread_join(session_thread, NULL);
@@ -514,8 +517,8 @@ void* handle_client_session(void* arg) {
     int rematch_votes[2] = {0, 0};
 
     while(1) { // 전체 세션 루프 (재시작을 위함)
-        // --- 게임 초기화 ---
-        memset(board, EMPTY, sizeof(board));
+        // 게임 초기화
+        memset(board, EMPTY, sizeof(board));    // 보드 초기화
         current_player = BLACK;
         rematch_votes[0] = 0;
         rematch_votes[1] = 0;
@@ -525,7 +528,7 @@ void* handle_client_session(void* arg) {
         packet.type = RES_START;
         memcpy(packet.board, board, sizeof(board));
 
-        // 재시작이 아닐 경우(첫 게임)를 제외하고 흑/백 전환
+        // 재시작 시 흑/백 전환
         if (arg != NULL) { // arg가 NULL이 아니면 재시작으로 간주
             char temp_name[MAX_NAME_LEN];
             strcpy(temp_name, player_names[0]);
@@ -536,17 +539,19 @@ void* handle_client_session(void* arg) {
             client_sockets[1] = temp_sock;
         }
 
+        // 각 클라이언트에게 게임 시작 안내 메세지 전송
         snprintf(packet.message, sizeof(packet.message), "게임 시작! 당신은 흑돌입니다. %s님의 차례.", player_names[0]);
         send(client_sockets[0], &packet, sizeof(GamePacket), 0);
         snprintf(packet.message, sizeof(packet.message), "게임 시작! 당신은 백돌입니다. %s님의 차례를 기다리세요.", player_names[0]);
         send(client_sockets[1], &packet, sizeof(GamePacket), 0);
         
-        // --- 게임 진행 루프 ---
+        // 게임 진행 루프
         while (!game_over_flag) {
             GamePacket req_packet;
             int player_idx = (current_player == BLACK) ? 0 : 1;
             int opponent_idx = 1 - player_idx;
             
+            // 현재 턴인 클라이언트에게 요청을 수신받는다
             int bytes_read = recv(client_sockets[player_idx], &req_packet, sizeof(GamePacket), 0);
             if (bytes_read <= 0) { // 클라이언트 연결 끊김
                 game_over_flag = 1;
@@ -557,6 +562,8 @@ void* handle_client_session(void* arg) {
                 client_sockets[player_idx] = -1; // 소켓 비활성화
                 break; // 게임 진행 루프 탈출
             }
+
+            // 요청 타입에 따라 처리
 
             // 게임 포기 요청 처리
             if (req_packet.type == REQ_QUIT) {
@@ -576,7 +583,6 @@ void* handle_client_session(void* arg) {
                 broadcast(&packet);
                 break;
             }
-
 
             if (req_packet.type == REQ_MOVE) {
                 int r = req_packet.row;
@@ -611,7 +617,7 @@ void* handle_client_session(void* arg) {
                         snprintf(msg, sizeof(msg), "게임 종료! %s의 승리! (r:재시작 p:전적보기 q:종료)", player_names[player_idx]);
                         packet.type = RES_GAME_OVER;
 
-                        // --- 전적 기록 ---
+                        // 전적 기록
                         PlayerRecord records[MAX_RECORDS];
                         int count = load_all_records(records);
                         PlayerRecord* winner_rec = get_or_create_record(records, &count, player_names[player_idx]);
@@ -635,7 +641,7 @@ void* handle_client_session(void* arg) {
 
         if(client_sockets[0] == -1 || client_sockets[1] == -1) break; // 한명이라도 나가면 세션 종료
         
-        // --- 게임 종료 후 처리 루프 (재시작/전적 요청) ---
+        // 게임 종료 후 처리 루프 (재시작/전적 요청)
         while(1) {
             int all_voted = (rematch_votes[0] && rematch_votes[1]);
             if(all_voted) break; // 재시작
