@@ -24,6 +24,9 @@ ClientState client_state = PLAYING;
 pthread_mutex_t ncurses_mutex;
 char ban_message[256] = ""; // 금수 안내 메시지용 전역 변수
 
+int my_color = -1; // 내가 흑돌인지(BLACK) 백돌인지(WHITE) 저장
+int current_turn = -1; // 현재 누구의 턴인지 저장 (BLACK 또는 WHITE)
+
 void draw_game_board() {
     clear();
     // 테두리 및 교차점 그리기
@@ -86,16 +89,31 @@ void* receive_handler(void* arg) {
         // 서버로부터 수신받은 패킷 타입에 따라 처리
         switch (packet.type) {
             case RES_START:
+                client_state = PLAYING;
+                memcpy(board, packet.board, sizeof(board));
+                strcpy(status_message, packet.message);
+                
+                // 내 색깔과 현재 턴 정보 저장
+                if (strstr(packet.message, "흑돌")) {
+                    my_color = BLACK;
+                } else {
+                    my_color = WHITE;
+                }
+                current_turn = packet.player; // 서버가 알려준 현재 턴
+
+                draw_game_board();
             case RES_UPDATE:
                 client_state = PLAYING;
                 memcpy(board, packet.board, sizeof(board));
 				strcpy(status_message, packet.message);
+                current_turn = packet.player; // 업데이트된 턴 정보 저장
                 draw_game_board();
                 break;
             case RES_GAME_OVER:
                 client_state = (packet.type == RES_GAME_OVER) ? POST_GAME : PLAYING;
                 memcpy(board, packet.board, sizeof(board));
 				strcpy(status_message, packet.message);
+                current_turn = -1; // 게임이 끝났으므로 턴 정보 초기화
                 draw_game_board();
                 break;
             case RES_RECORDS:
@@ -206,14 +224,23 @@ int main(int argc, char *argv[]) {
                 case KEY_LEFT:  if(current_col > 0) current_col--; break;
                 case KEY_RIGHT: if(current_col < BOARD_SIZE - 1) current_col++; break;
                 case ' ':
-                    ban_message[0] = '\0'; // 금수 메시지 지우기
-                    req_packet.type = REQ_MOVE;
-                    req_packet.row = current_row;
-                    req_packet.col = current_col;
-                    send(sock, &req_packet, sizeof(GamePacket), 0);
-				    pthread_mutex_lock(&ncurses_mutex);
-                    strcpy(status_message, "서버의 응답을 기다립니다...");
-                    pthread_mutex_unlock(&ncurses_mutex);
+                    // 현재 게임 중이고, 내 턴일 때만 동작하도록 함
+                    if (current_turn == my_color) { 
+                        ban_message[0] = '\0';
+                        req_packet.type = REQ_MOVE;
+                        req_packet.row = current_row;
+                        req_packet.col = current_col;
+                        send(sock, &req_packet, sizeof(GamePacket), 0);
+                        
+                        pthread_mutex_lock(&ncurses_mutex);
+                        strcpy(status_message, "서버의 응답을 기다립니다...");
+                        pthread_mutex_unlock(&ncurses_mutex);
+                    } else {
+                        // 내 턴이 아닐 때는 메시지만 표시하고 아무것도 안 함
+                        pthread_mutex_lock(&ncurses_mutex);
+                        strcpy(status_message, "상대방의 턴입니다. 둘 수 없습니다.");
+                        pthread_mutex_unlock(&ncurses_mutex);
+                    }
                     break;
                 case 'q':
                     // 'q'를 누르면 서버에 포기 요청을 보냄

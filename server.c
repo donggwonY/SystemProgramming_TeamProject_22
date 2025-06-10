@@ -527,6 +527,7 @@ void* handle_client_session(void* arg) {
         GamePacket packet;
         packet.type = RES_START;
         memcpy(packet.board, board, sizeof(board));
+        packet.player = current_player; // 게임 시작 시 현재 턴은 흑돌임을 명시
 
         // 재시작 시 흑/백 전환
         if (arg != NULL) { // arg가 NULL이 아니면 재시작으로 간주
@@ -617,6 +618,7 @@ void* handle_client_session(void* arg) {
                         game_over_flag = 1;
                         snprintf(msg, sizeof(msg), "게임 종료! %s의 승리! (r:재시작 p:전적보기 q:종료)", player_names[player_idx]);
                         packet.type = RES_GAME_OVER;
+                        packet.player = current_player; // 승자 정보
 
                         // 전적 기록
                         PlayerRecord records[MAX_RECORDS];
@@ -631,7 +633,9 @@ void* handle_client_session(void* arg) {
                         current_player = (current_player == BLACK) ? WHITE : BLACK;
                         snprintf(msg, sizeof(msg), "%s님의 차례입니다.", player_names[(current_player == BLACK) ? 0 : 1]);
                         packet.type = RES_UPDATE;
+                        packet.player = current_player; // 다음 턴이 누구인지 정보를 패킷에 담음
                     }
+                    
                 }
                 
                 strcpy(packet.message, msg);
