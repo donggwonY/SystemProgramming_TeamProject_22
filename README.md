@@ -23,7 +23,10 @@
 ---
 
 ## 소개
-`SystemProgramming_TeamProject_22`는 C 언어와 POSIX 스레드를 이용해 클라이언트-서버 구조로 구현된 8인용 실시간 오목(Gomoku) 게임입니다. 플레이어 간 TCP 소켓 통신으로 게임 판 상태를 공유하며, 게임 전적을 파일에 저장합니다.
+`SystemProgramming_TeamProject_22`는 C 언어와 POSIX 스레드를 이용해
+ 클라이언트-서버 구조로 구현된 8인용 실시간 오목(Gomoku) 게임입니다.
+ 플레이어 간 TCP 소켓 통신으로 게임 판 상태를 공유하며,
+ 게임 전적을 파일에 저장합니다.
 
 ---
 
