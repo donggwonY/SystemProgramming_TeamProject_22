@@ -93,12 +93,14 @@ $ ./client [IP] [PORT] [NAME]
 
 ## 게임화면
 
-| ![스크린샷1](images/screen1.png) 
-| ![스크린샷2](images/screen2.png) 
-|
-| :-----------------------------: | :-----------------------------: |
-| ![스크린샷3](images/screen3.png) 
-| ![스크린샷4](images/screen4.png)|
+1. user1접속
+ ![스크린샷2](images/screen2.png) 
+2. user2접속
+ ![스크린샷4](images/screen4.png)
+3. 게임매칭 성사
+ ![스크린샷3](images/screen3.png)
+4. 게임시작
+ ![스크린샷1](images/screen1.png)
 
 ---
 
