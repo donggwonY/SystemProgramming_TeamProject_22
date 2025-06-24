@@ -28,7 +28,6 @@
 ---
 
 ## 디렉토리 구조
-```plaintext
 SystemProgramming_TeamProject_22/
 ├─ client/              # 클라이언트 소스
 │   └─ client.c
@@ -108,6 +107,7 @@ $ ./client [IP] [PORT] [NAME]
 
 * **gomoku\_records.dat** 파일에 승패 기록 바이너리 형태로 저장
 * 서버 시작 시 자동 로드하여 이전 게임 통계 확인
+* 게임 종료 시 r버튼 입력하여 게임 통계 확인
 
 ---
 
